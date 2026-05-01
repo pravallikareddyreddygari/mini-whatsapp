@@ -76,12 +76,20 @@ const initialMessages: Record<string, Message[]> = {
 };
 
 export default function ChatApp() {
-  const [chats, setChats] = useState<Chat[]>(initialChats);
-  const [messages, setMessages] = useState<Record<string, Message[]>>(initialMessages);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [activeChatId, setActiveChatId] = useState<string | null>('1');
   const [inputText, setInputText] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isHydrated, setIsHydrated] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize state only on client to avoid hydration mismatch
+  useEffect(() => {
+    setChats(initialChats);
+    setMessages(initialMessages);
+    setIsHydrated(true);
+  }, []);
 
   const activeChat = chats.find(chat => chat.id === activeChatId);
   const activeMessages = activeChatId ? messages[activeChatId] || [] : [];
@@ -148,6 +156,22 @@ export default function ChatApp() {
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+
+  // Don't render until hydrated to avoid mismatch
+  if (!isHydrated) {
+    return (
+      <div className="flex h-screen max-w-7xl mx-auto bg-white dark:bg-[#111b21]">
+        <div className="w-full md:w-80 lg:w-96 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 flex flex-col bg-[#efeae2] dark:bg-[#111b21]">
+          <div className="bg-[#008069] dark:bg-[#005b4a] p-4 flex items-center justify-between text-white">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+              <h1 className="text-xl font-semibold">WhatsApp</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen max-w-7xl mx-auto bg-white dark:bg-[#111b21]">
